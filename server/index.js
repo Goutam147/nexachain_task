@@ -3,6 +3,12 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
+// Global Timezone configuration
+process.env.TZ = process.env.TZ || 'Asia/Kolkata';
+
+const connectDB = require('./config/db');
+const seedAdmin = require('./utils/seeder');
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -28,7 +34,16 @@ app.get('/', (req, res) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+// Auth Routes
+app.use('/api/auth', require('./routes/authRoutes'));
+
+// Boot Server after DB connection
+connectDB().then(() => {
+  // Seed default admin user
+  seedAdmin();
+
+  // Start Server
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
 });

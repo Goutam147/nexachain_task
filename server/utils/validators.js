@@ -5,17 +5,17 @@ const registerSchema = z.object({
   fullName: z.string()
     .min(2, { message: 'Full name must be at least 2 characters long' })
     .max(50, { message: 'Full name cannot exceed 50 characters' })
+    .regex(/^[a-zA-Z\s]+$/, { message: 'Full name must contain only letters and spaces' })
     .trim(),
   email: z.string()
     .email({ message: 'Invalid email address' })
     .trim(),
   mobileNumber: z.string()
-    .min(10, { message: 'Mobile number must be at least 10 digits' })
-    .max(15, { message: 'Mobile number cannot exceed 15 digits' })
+    .regex(/^[0-9]{10}$/, { message: 'Mobile number must be exactly 10 digits and contain only numbers' })
     .trim(),
   password: z.string()
     .min(6, { message: 'Password must be at least 6 characters long' })
-    .max(100, { message: 'Password cannot exceed 100 characters' }),
+    .max(254, { message: 'Password cannot exceed 254 characters' }),
   referralCode: z.string()
     .trim()
     .optional()
@@ -29,6 +29,7 @@ const loginSchema = z.object({
     .trim(),
   password: z.string()
     .min(1, { message: 'Password is required' })
+    .max(254, { message: 'Password cannot exceed 254 characters' })
 });
 
 // Investment validator schema
