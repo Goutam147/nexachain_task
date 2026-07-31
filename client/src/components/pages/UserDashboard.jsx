@@ -1,169 +1,300 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaWallet, 
   FaChartLine, 
   FaUsers, 
   FaCoins
 } from 'react-icons/fa';
+import api from '../../utils/api';
 import { useAuth } from '../../context/AuthContext';
+
+// Custom Responsive SVG Line Chart Component
+function PerformanceChart({ data }) {
+  const width = 800;
+  const height = 240; // Reduced height to fit perfectly side-by-side
+  const paddingLeft = 55;
+  const paddingRight = 15;
+  const paddingTop = 15;
+  const paddingBottom = 30;
+
+  const chartWidth = width - paddingLeft - paddingRight;
+  const chartHeight = height - paddingTop - paddingBottom;
+
+  // Find max value in data to scale Y-axis
+  const maxVal = Math.max(
+    ...data.map(d => Math.max(d.credit, d.debit)),
+    100 // Default minimum ceiling to look clean
+  );
+
+  // Y-axis tick values (5 divisions)
+  const yTicks = [
+    maxVal,
+    maxVal * 0.75,
+    maxVal * 0.5,
+    maxVal * 0.25,
+    0
+  ];
+
+  // Helper to format currency values cleanly
+  const formatCurrency = (val) => {
+    if (val >= 1000) {
+      return `₹${(val / 1000).toFixed(0)}k`;
+    }
+    return `₹${val}`;
+  };
+
+  // Compute point coordinates
+  const pointsCredit = data.map((d, i) => {
+    const x = paddingLeft + (i / (data.length - 1)) * chartWidth;
+    const y = paddingTop + chartHeight - (d.credit / maxVal) * chartHeight;
+    return { x, y, val: d.credit, date: d.date };
+  });
+
+  const pointsDebit = data.map((d, i) => {
+    const x = paddingLeft + (i / (data.length - 1)) * chartWidth;
+    const y = paddingTop + chartHeight - (d.debit / maxVal) * chartHeight;
+    return { x, y, val: d.debit, date: d.date };
+  });
+
+  // SVG path command strings
+  const pathCredit = pointsCredit.length > 0 
+    ? `M ${pointsCredit[0].x} ${pointsCredit[0].y} ` + pointsCredit.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')
+    : '';
+
+  const pathDebit = pointsDebit.length > 0 
+    ? `M ${pointsDebit[0].x} ${pointsDebit[0].y} ` + pointsDebit.slice(1).map(p => `L ${p.x} ${p.y}`).join(' ')
+    : '';
+
+  return (
+    <div className="space-y-3">
+      {/* Chart Legend */}
+      <div className="flex items-center justify-center gap-6 text-[10px]">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3.5 h-2 bg-slate-800 rounded-xs"></span>
+          <span className="font-extrabold text-slate-700">Credit</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3.5 h-2 bg-emerald-500 rounded-xs"></span>
+          <span className="font-extrabold text-slate-700">Debit</span>
+        </div>
+      </div>
+
+      {/* SVG Chart Viewport */}
+      <div className="w-full overflow-x-auto select-none">
+        <svg 
+          viewBox={`0 0 ${width} ${height}`} 
+          className="w-full min-w-[500px] h-[200px] font-sans"
+        >
+          {/* Horizontal Gridlines & Y-axis Labels */}
+          {yTicks.map((tick, i) => {
+            const y = paddingTop + (i / 4) * chartHeight;
+            return (
+              <g key={i} className="text-[9px] text-slate-400 font-extrabold">
+                <text 
+                  x={paddingLeft - 8} 
+                  y={y + 3} 
+                  textAnchor="end"
+                  fill="currentColor"
+                >
+                  {formatCurrency(tick)}
+                </text>
+                <line 
+                  x1={paddingLeft} 
+                  y1={y} 
+                  x2={width - paddingRight} 
+                  y2={y} 
+                  stroke="#f1f5f9" 
+                  strokeWidth="1.5" 
+                  strokeDasharray="4 4"
+                />
+              </g>
+            );
+          })}
+
+          {/* X-axis Labels */}
+          {data.map((d, i) => {
+            const x = paddingLeft + (i / (data.length - 1)) * chartWidth;
+            return (
+              <text 
+                key={i} 
+                x={x} 
+                y={height - 5} 
+                textAnchor="middle" 
+                fill="#94a3b8" 
+                className="text-[9px] font-extrabold"
+              >
+                {d.date}
+              </text>
+            );
+          })}
+
+          {/* Lines */}
+          <path 
+            d={pathCredit} 
+            fill="none" 
+            stroke="#1e293b" 
+            strokeWidth="3" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+          />
+          <path 
+            d={pathDebit} 
+            fill="none" 
+            stroke="#10b981" 
+            strokeWidth="3" 
+            strokeLinecap="round" 
+            strokeLinejoin="round" 
+          />
+
+          {/* Credit White Nodes */}
+          {pointsCredit.map((p, i) => (
+            <circle 
+              key={i} 
+              cx={p.x} 
+              cy={p.y} 
+              r="4" 
+              fill="white" 
+              stroke="#1e293b" 
+              strokeWidth="2"
+              className="cursor-pointer"
+            >
+              <title>{`${p.date}\nCredit: ₹${p.val.toFixed(2)}`}</title>
+            </circle>
+          ))}
+
+          {/* Debit White Nodes */}
+          {pointsDebit.map((p, i) => (
+            <circle 
+              key={i} 
+              cx={p.x} 
+              cy={p.y} 
+              r="4" 
+              fill="white" 
+              stroke="#10b981" 
+              strokeWidth="2"
+              className="cursor-pointer"
+            >
+              <title>{`${p.date}\nDebit: ₹${p.val.toFixed(2)}`}</title>
+            </circle>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 function UserDashboard() {
   const { user } = useAuth();
-  
-  // Dashboard Data State (fallbacks to mocks if not loaded or 0)
-  const walletBalance = user?.walletBalance ?? 35.00;
-  const totalInvestments = 1000.00; // Mock standard starting active contract
-  const roiEarned = user?.totalRoiEarned ?? 10.00;
-  const levelIncome = user?.totalLevelIncomeEarned ?? 25.00;
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  // Mock list of transactions
-  const [transactions] = useState([
-    { id: 1, type: 'ROI Payout', amount: 10.00, date: '2026-07-30 12:00 AM', status: 'Completed' },
-    { id: 2, type: 'Referral (Bob)', amount: 25.00, date: '2026-07-30 09:15 AM', status: 'Completed' }
-  ]);
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const { data } = await api.get('/dashboard');
+        if (data.status === 'success') {
+          setDashboardData(data.data);
+        } else {
+          setError(data.message || 'Failed to retrieve dashboard telemetry');
+        }
+      } catch (err) {
+        console.error(err);
+        setError('Network error: Make sure the server is online');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Mock list of referrals
-  const [referrals] = useState([
-    { name: 'Bob Smith', email: 'bob@example.com', investment: '₹500.00', level: 1 }
-  ]);
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="py-20 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto p-4 bg-red-50 border border-red-200 rounded-[4px] text-xs text-red-700 font-extrabold">
+        Error: {error}
+      </div>
+    );
+  }
+
+  const { stats, chartData } = dashboardData;
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      {/* Top Info Banner */}
-      <div className="p-6 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
-        <div className="space-y-1">
-          <h2 className="text-xl font-bold text-slate-800">Welcome back, {user?.fullName}!</h2>
-          <p className="text-xs text-slate-500 leading-relaxed max-w-2xl">
-            View your NexaChain AI investment growth, wallet statistics, transaction history, and direct referral tree hierarchy in real-time.
-          </p>
-        </div>
+    <div className="max-w-6xl mx-auto space-y-4">
+      {/* Top Header Card */}
+      <div className="p-4 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
+        <h2 className="text-lg font-black text-slate-800 tracking-tight leading-none">Dashboard</h2>
+        <span className="text-[10px] text-blue-600 font-extrabold uppercase tracking-wider block mt-1">
+          Welcome back, {user?.fullName || 'User'}!
+        </span>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Stat 1 */}
-        <div className="p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Total Investment</span>
-            <div className="p-2 rounded-[4px] bg-blue-50 text-blue-600">
+      {/* Side-by-Side Viewport Layout (No Vertical Scroll needed) */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Left Column: Stack of 4 Compact Stats Cards */}
+        <div className="md:col-span-1 flex flex-col gap-3">
+          {/* Stat 1 */}
+          <div className="p-3.5 bg-white border border-slate-200 border-l-4 border-l-blue-600 rounded-[4px] shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Total Investment</span>
+              <strong className="text-base font-black text-slate-800 block">₹{stats.totalInvestments.toFixed(2)}</strong>
+            </div>
+            <div className="p-2.5 rounded-[4px] bg-blue-50 text-blue-600 text-sm">
               <FaCoins />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">₹{totalInvestments.toFixed(2)}</div>
-          <div className="text-[10px] text-blue-600 mt-1 font-semibold">1 Active Contract</div>
-        </div>
 
-        {/* Stat 2 */}
-        <div className="p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Wallet Balance</span>
-            <div className="p-2 rounded-[4px] bg-emerald-50 text-emerald-600">
+          {/* Stat 2 */}
+          <div className="p-3.5 bg-white border border-slate-200 border-l-4 border-l-emerald-650 rounded-[4px] shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Wallet Balance</span>
+              <strong className="text-base font-black text-slate-800 block">₹{stats.walletBalance.toFixed(2)}</strong>
+            </div>
+            <div className="p-2.5 rounded-[4px] bg-emerald-50 text-emerald-600 text-sm">
               <FaWallet />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">₹{walletBalance.toFixed(2)}</div>
-          <div className="text-[10px] text-emerald-600 mt-1 font-semibold">Available for withdrawal</div>
-        </div>
 
-        {/* Stat 3 */}
-        <div className="p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Daily ROI Earned</span>
-            <div className="p-2 rounded-[4px] bg-amber-50 text-amber-600">
+          {/* Stat 3 */}
+          <div className="p-3.5 bg-white border border-slate-200 border-l-4 border-l-amber-500 rounded-[4px] shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Daily ROI Earned</span>
+              <strong className="text-base font-black text-slate-800 block">₹{stats.roiEarned.toFixed(2)}</strong>
+            </div>
+            <div className="p-2.5 rounded-[4px] bg-amber-50 text-amber-600 text-sm">
               <FaChartLine />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">₹{roiEarned.toFixed(2)}</div>
-          <div className="text-[10px] text-slate-400 mt-1">1.00% daily payout</div>
-        </div>
 
-        {/* Stat 4 */}
-        <div className="p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">Level Income</span>
-            <div className="p-2 rounded-[4px] bg-indigo-50 text-indigo-600">
+          {/* Stat 4 */}
+          <div className="p-3.5 bg-white border border-slate-200 border-l-4 border-l-indigo-600 rounded-[4px] shadow-2xs flex items-center justify-between">
+            <div className="space-y-0.5">
+              <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Level Income</span>
+              <strong className="text-base font-black text-slate-800 block">₹{stats.levelIncome.toFixed(2)}</strong>
+            </div>
+            <div className="p-2.5 rounded-[4px] bg-indigo-50 text-indigo-600 text-sm">
               <FaUsers />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">₹{levelIncome.toFixed(2)}</div>
-          <div className="text-[10px] text-slate-400 mt-1">Active referrals network</div>
-        </div>
-      </div>
-
-      {/* Grid of Network and History */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Transactions Table */}
-        <div className="lg:col-span-2 p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-1 h-3.5 bg-blue-600"></span> Recent Earnings Log
-          </h3>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
-                  <th className="py-2.5 px-3">TxID</th>
-                  <th className="py-2.5 px-3">Type</th>
-                  <th className="py-2.5 px-3">Amount</th>
-                  <th className="py-2.5 px-3">Timestamp</th>
-                  <th className="py-2.5 px-3">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {transactions.map((tx) => (
-                  <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="py-3 px-3 font-mono text-slate-500">TX-00{tx.id}</td>
-                    <td className="py-3 px-3 font-semibold text-slate-700">{tx.type}</td>
-                    <td className="py-3 px-3 font-bold text-blue-600">+₹{tx.amount.toFixed(2)}</td>
-                    <td className="py-3 px-3 text-slate-500">{tx.date}</td>
-                    <td className="py-3 px-3">
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">
-                        {tx.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
 
-        {/* Referral Tree Structure */}
-        <div className="p-5 bg-white border border-slate-200 rounded-[4px] shadow-2xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-            <span className="w-1 h-3.5 bg-blue-600"></span> Direct Referrals Tree
+        {/* Right Column: Dynamic Timeline Analytics Line Chart */}
+        <div className="md:col-span-2 p-4 bg-white border border-slate-200 rounded-[4px] shadow-2xs flex flex-col justify-between">
+          <h3 className="text-xs font-bold text-slate-800 flex items-center gap-1.5 pb-2 border-b border-slate-100">
+            <span className="w-1.5 h-3.5 bg-blue-600 rounded-full"></span> 
+            Credit & Debit Performance
           </h3>
-          
-          <div className="space-y-4 pt-2">
-            {/* Root User */}
-            <div className="p-3 bg-blue-50 border border-blue-100 rounded-[4px] flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-[4px] bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white">
-                  {user?.fullName?.substring(0, 2).toUpperCase() || 'ME'}
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-slate-700">{user?.fullName} (You)</div>
-                  <div className="text-[9px] text-slate-500">Code: {user?.referralCode}</div>
-                </div>
-              </div>
-              <span className="text-[9px] font-bold bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-[4px]">Root</span>
-            </div>
-
-            {/* Node Connectors */}
-            <div className="pl-4 border-l border-slate-200 ml-3 space-y-3">
-              {referrals.map((ref, idx) => (
-                <div key={idx} className="relative flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-[4px] before:content-[''] before:absolute before:right-full before:w-4 before:h-[1px] before:bg-slate-200">
-                  <div className="w-6 h-6 rounded-[4px] bg-slate-200 flex items-center justify-center text-[9px] font-bold text-slate-500">
-                    {ref.name.substring(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="text-xs font-bold text-slate-700">{ref.name}</div>
-                    <div className="text-[9px] text-slate-500">Investment: {ref.investment}</div>
-                  </div>
-                  <span className="ml-auto text-[9px] font-bold bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded-[4px]">
-                    Lvl {ref.level}
-                  </span>
-                </div>
-              ))}
+          <div className="flex-1 flex items-center">
+            <div className="w-full">
+              <PerformanceChart data={chartData} />
             </div>
           </div>
         </div>

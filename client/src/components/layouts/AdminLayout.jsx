@@ -29,11 +29,13 @@ function AdminLayout() {
       {/* Header */}
       <header className="border-b border-slate-200 bg-white sticky top-0 z-50 px-6 py-4 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-[4px] bg-blue-600 flex items-center justify-center shadow-xs">
-            <span className="text-white font-bold text-lg">A</span>
-          </div>
+          <img 
+            src="/nc_logo.png" 
+            alt="NC Logo" 
+            className="w-10 h-10 rounded-full border-2 border-blue-400 p-[3px] bg-white shadow-xs object-cover" 
+          />
           <div>
-            <h1 className="text-lg font-bold text-slate-800 m-0 leading-none">NexaChain AI</h1>
+            <h1 className="text-lg font-bold text-slate-800 m-0 leading-none">NC Investment</h1>
             <span className="text-[10px] text-red-600 font-semibold uppercase tracking-wider">Admin Control Panel</span>
           </div>
         </div>
@@ -101,7 +103,7 @@ function AdminLayout() {
 
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 text-center text-[10px] text-slate-400">
-        NexaChain AI System &copy; 2026. Admin Panel.
+        NC Investment System &copy; 2026. Admin Panel.
       </footer>
     </div>
   );

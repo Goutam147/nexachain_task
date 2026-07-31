@@ -12,6 +12,7 @@ import PlanList from './components/pages/PlanList';
 import InvestmentList from './components/pages/InvestmentList';
 import ReferralHistory from './components/pages/referral/ReferralHistory';
 import ReferralTree from './components/pages/referral/ReferralTree';
+import RoiHistoryList from './components/pages/RoiHistoryList';
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -62,6 +63,10 @@ const router = createBrowserRouter([
       {
         path: '/investments',
         element: <InvestmentList />
+      },
+      {
+        path: '/roi-history',
+        element: <RoiHistoryList />
       },
       {
         path: '/referrals/history',

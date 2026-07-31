@@ -2,6 +2,7 @@ const Investment = require('../models/Investment');
 const Plan = require('../models/Plan');
 const User = require('../models/User');
 const ReferralIncome = require('../models/ReferralIncome');
+const { getKolkataTime } = require('../utils/dateHelper');
 
 /**
  * Creates a new user investment contract, deducts user wallet balance,
@@ -29,7 +30,7 @@ const createInvestment = async (userId, investmentAmount, planId) => {
   }
 
   // 4. Create investment contract
-  const startDate = new Date();
+  const startDate = getKolkataTime();
   const endDate = new Date(startDate.getTime() + plan.period * 24 * 60 * 60 * 1000);
 
   const investment = new Investment({
@@ -81,7 +82,7 @@ const createInvestment = async (userId, investmentAmount, planId) => {
         generator: user._id,
         level: i + 1,
         amount: bonusAmount,
-        date: new Date()
+        date: getKolkataTime()
       });
       await referralIncome.save();
     }

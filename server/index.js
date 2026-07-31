@@ -46,10 +46,25 @@ app.use('/api/investments', require('./routes/investmentRoutes'));
 // Referral Routes
 app.use('/api/referrals', require('./routes/referralRoutes'));
 
+// Dashboard Routes
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+
+// ROI Routes
+app.use('/api/roi', require('./routes/roiRoutes'));
+
+// Cron Routes
+app.use('/api/cron', require('./routes/cronRoutes'));
+
+// Import Cron Scheduler
+const { initCronScheduler } = require('./services/cronService');
+
 // Boot Server after DB connection
 connectDB().then(() => {
   // Seed default admin user
   seedAdmin();
+
+  // Initialize automated cron scheduler tasks (12:00 AM daily)
+  initCronScheduler();
 
   // Start Server
   app.listen(PORT, () => {

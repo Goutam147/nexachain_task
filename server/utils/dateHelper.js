@@ -1,10 +1,12 @@
 /**
- * Date and Time Helper configured for Asia/Kolkata Timezone
+ * Date and Time Helper configured for Asia/Kolkata Timezone (IST)
  */
 
-// Returns a new Date object representing the current time adjusted to Asia/Kolkata
+// Returns a new Date object representing the current time shifted to Asia/Kolkata (IST = UTC + 5:30)
 const getKolkataTime = () => {
-  return new Date();
+  const utc = Date.now();
+  const kolkataOffset = 5.5 * 60 * 60 * 1000;
+  return new Date(utc + kolkataOffset);
 };
 
 // Returns a YYYY-MM-DD calendar date string in Asia/Kolkata timezone
@@ -16,7 +18,16 @@ const getKolkataDateString = (date = new Date()) => {
   return `${year}-${month}-${day}`; // Returns YYYY-MM-DD
 };
 
+// Returns start and end Date bounds for the current calendar date in IST
+const getKolkataStartAndEndOfToday = () => {
+  const dateStr = getKolkataDateString(); // YYYY-MM-DD in IST
+  const start = new Date(`${dateStr}T00:00:00.000Z`);
+  const end = new Date(`${dateStr}T23:59:59.999Z`);
+  return { start, end };
+};
+
 module.exports = {
   getKolkataTime,
-  getKolkataDateString
+  getKolkataDateString,
+  getKolkataStartAndEndOfToday
 };

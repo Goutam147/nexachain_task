@@ -60,11 +60,13 @@ function Register() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white border border-slate-200 p-8 shadow-sm rounded-[4px] space-y-6">
         <div className="text-center space-y-2">
-          <div className="inline-flex w-12 h-12 rounded-[4px] bg-blue-600 items-center justify-center text-white font-bold text-2xl shadow-sm">
-            N
-          </div>
+          <img 
+            src="/nc_logo.png" 
+            alt="NC Logo" 
+            className="inline-flex w-14 h-14 rounded-full border-2 border-blue-400 p-[3px] bg-white shadow-sm object-cover" 
+          />
           <h2 className="text-2xl font-bold tracking-tight text-slate-800">Create an Account</h2>
-          <p className="text-sm text-slate-500">Join NexaChain AI and start earning daily ROI</p>
+          <p className="text-sm text-slate-500">Join NC Investment and start earning daily ROI</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
