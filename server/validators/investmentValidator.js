@@ -7,10 +7,11 @@ const investmentSchema = z.object({
     invalid_type_error: 'Investment amount must be a number'
   })
   .positive({ message: 'Investment amount must be greater than zero' }),
+  
   planDetails: z.string({
-    required_error: 'Plan details are required'
+    required_error: 'Plan details reference is required'
   })
-  .min(3, { message: 'Plan details must be at least 3 characters long' })
+  .length(24, { message: 'Plan details must be a valid 24-character ObjectId' })
   .trim()
 });
 

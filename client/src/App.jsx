@@ -9,6 +9,9 @@ import UserDashboard from './components/pages/UserDashboard';
 import AdminDashboard from './components/pages/AdminDashboard';
 import UserList from './components/pages/UserList';
 import PlanList from './components/pages/PlanList';
+import InvestmentList from './components/pages/InvestmentList';
+import ReferralHistory from './components/pages/referral/ReferralHistory';
+import ReferralTree from './components/pages/referral/ReferralTree';
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -19,8 +22,12 @@ function HomeRedirect() {
       </div>
     );
   }
-  if (!user) return <Navigate to="/login" replace />;
-  if (user.role === 'admin') return <Navigate to="/admin/dashboard" replace />;
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
   return <Navigate to="/dashboard" replace />;
 }
 
@@ -51,6 +58,18 @@ const router = createBrowserRouter([
       {
         path: '/dashboard',
         element: <UserDashboard />
+      },
+      {
+        path: '/investments',
+        element: <InvestmentList />
+      },
+      {
+        path: '/referrals/history',
+        element: <ReferralHistory />
+      },
+      {
+        path: '/referrals/tree',
+        element: <ReferralTree />
       }
     ]
   },

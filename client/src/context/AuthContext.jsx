@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import Cookies from 'js-cookie';
+import api from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -18,14 +19,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/me', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const data = await response.json();
+        const { data } = await api.get('/auth/me');
         if (data.status === 'success') {
           setUser(data.user);
         } else {
@@ -35,6 +29,7 @@ export const AuthProvider = ({ children }) => {
         }
       } catch (error) {
         console.error('Error fetching user profile:', error);
+        Cookies.remove('token');
         setUser(null);
       } finally {
         setLoading(false);
@@ -47,15 +42,7 @@ export const AuthProvider = ({ children }) => {
   // Login handler
   const login = async (email, password) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ email, password })
-      });
-
-      const data = await response.json();
+      const { data } = await api.post('/auth/login', { email, password });
       if (data.status !== 'success') {
         throw new Error(data.message || 'Login failed');
       }
@@ -65,22 +52,18 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (error) {
-      throw error;
+      // Extract message from axios error response
+      const message = error.response?.data?.message || error.message || 'Login failed';
+      throw new Error(message);
     }
   };
 
   // Register handler
   const register = async ({ fullName, email, mobileNumber, password, referralCode }) => {
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ fullName, email, mobileNumber, password, referralCode })
+      const { data } = await api.post('/auth/register', {
+        fullName, email, mobileNumber, password, referralCode
       });
-
-      const data = await response.json();
       if (data.status !== 'success') {
         // Handle error messages from zod array
         if (data.errors && data.errors.length > 0) {
@@ -94,7 +77,12 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
       return data.user;
     } catch (error) {
-      throw error;
+      const resData = error.response?.data;
+      if (resData?.errors && resData.errors.length > 0) {
+        throw new Error(resData.errors[0].message);
+      }
+      const message = resData?.message || error.message || 'Registration failed';
+      throw new Error(message);
     }
   };
 
@@ -104,8 +92,22 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  // Reload profile handler
+  const reloadUser = async () => {
+    const token = Cookies.get('token');
+    if (!token) return;
+    try {
+      const { data } = await api.get('/auth/me');
+      if (data.status === 'success') {
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error reloading user profile:', error);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, reloadUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { FaTimes } from 'react-icons/fa';
+import api from '../../utils/api';
 
 function UserList() {
   const [users, setUsers] = useState([]);
@@ -14,16 +14,8 @@ function UserList() {
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const token = Cookies.get('token');
       try {
-        const response = await fetch('http://localhost:5000/api/auth/users', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        const data = await response.json();
+        const { data } = await api.get('/auth/users');
         if (data.status === 'success') {
           setUsers(data.users);
         } else {

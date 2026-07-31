@@ -40,6 +40,12 @@ app.use('/api/auth', require('./routes/authRoutes'));
 // Plan Routes
 app.use('/api/plans', require('./routes/planRoutes'));
 
+// Investment Routes
+app.use('/api/investments', require('./routes/investmentRoutes'));
+
+// Referral Routes
+app.use('/api/referrals', require('./routes/referralRoutes'));
+
 // Boot Server after DB connection
 connectDB().then(() => {
   // Seed default admin user

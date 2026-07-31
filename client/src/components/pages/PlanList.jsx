@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import Cookies from 'js-cookie';
 import { FaTimes, FaPlus, FaMinus, FaCoins, FaExclamationTriangle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import api from '../../utils/api';
 import Button from '../ui/Button';
 
 function PlanList() {
@@ -15,7 +15,7 @@ function PlanList() {
   const [roi, setRoi] = useState('');
   const [period, setPeriod] = useState('');
   const [minInvest, setMinInvest] = useState('');
-  const [levels, setLevels] = useState([10]); // Defaults to Level 1 with 10%
+  const [levels, setLevels] = useState(['']); // Start Level 1 as empty string (don't fill automatically)
   const [status, setStatus] = useState('Active'); // Status state
   const [modalError, setModalError] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
@@ -23,18 +23,85 @@ function PlanList() {
   // SweetAlert Confirm State
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
+  // Key filters to prevent entering e, E, -, + or dot inside numeric fields
+  const handleDecimalKeyDown = (e) => {
+    if (['e', 'E', '-', '+'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  const handleIntegerKeyDown = (e) => {
+    if (['e', 'E', '-', '+', '.'].includes(e.key)) {
+      e.preventDefault();
+    }
+  };
+
+  // 1. Daily ROI change handler (strips leading zeros, limits to max 3 decimal places, caps at 100)
+  const handleRoiChange = (e) => {
+    let val = e.target.value;
+    val = val.replace(/^0+(?=\d)/, ''); // strip leading zeros (e.g. 02 -> 2)
+    
+    // Max 3 decimal places
+    const parts = val.split('.');
+    if (parts[1] && parts[1].length > 3) {
+      val = parts[0] + '.' + parts[1].substring(0, 3);
+    }
+    
+    // Max is 100
+    const num = parseFloat(val);
+    if (!isNaN(num) && num > 100) {
+      val = '100';
+    }
+    setRoi(val);
+  };
+
+  // 2. Period change handler (strips leading zeros, accepts digits only)
+  const handlePeriodChange = (e) => {
+    let val = e.target.value;
+    val = val.replace(/[^0-9]/g, ''); // digit characters only
+    val = val.replace(/^0+(?=\d)/, ''); // strip leading zeros
+    setPeriod(val);
+  };
+
+  // 3. Minimum investment change handler (strips leading zeros, max 3 decimal places)
+  const handleMinInvestChange = (e) => {
+    let val = e.target.value;
+    val = val.replace(/^0+(?=\d)/, ''); // strip leading zeros
+    
+    const parts = val.split('.');
+    if (parts[1] && parts[1].length > 3) {
+      val = parts[0] + '.' + parts[1].substring(0, 3);
+    }
+    setMinInvest(val);
+  };
+
+  // 4. Level bonus change handler (strips leading zeros, max 3 decimal places, caps at 100)
+  const handleLevelChange = (index, value) => {
+    let val = value;
+    val = val.replace(/^0+(?=\d)/, ''); // strip leading zeros
+    
+    const parts = val.split('.');
+    if (parts[1] && parts[1].length > 3) {
+      val = parts[0] + '.' + parts[1].substring(0, 3);
+    }
+    
+    const num = parseFloat(val);
+    if (!isNaN(num) && num > 100) {
+      val = '100';
+    }
+
+    setLevels(prev => {
+      const copy = [...prev];
+      copy[index] = val;
+      return copy;
+    });
+  };
+
   // Fetch plans helper
   const fetchPlans = async () => {
     setLoading(true);
-    const token = Cookies.get('token');
     try {
-      const response = await fetch('http://localhost:5000/api/plans', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const { data } = await api.get('/plans');
       if (data.status === 'success') {
         setPlans(data.plans);
       } else {
@@ -53,22 +120,13 @@ function PlanList() {
   }, []);
 
   const handleAddLevel = () => {
-    setLevels(prev => [...prev, 5]); // Add a level with default 5%
+    setLevels(prev => [...prev, '']); // Add empty string (don't fill automatically)
   };
 
   const handleRemoveLevel = (index) => {
     if (levels.length > 1) {
       setLevels(prev => prev.filter((_, idx) => idx !== index));
     }
-  };
-
-  const handleLevelChange = (index, value) => {
-    const numericVal = parseFloat(value) || 0;
-    setLevels(prev => {
-      const copy = [...prev];
-      copy[index] = numericVal;
-      return copy;
-    });
   };
 
   const handleCreatePlanSubmit = async (e) => {
@@ -83,8 +141,8 @@ function PlanList() {
       setModalError('Plan Name is required');
       return;
     }
-    if (isNaN(parsedRoi) || parsedRoi < 0) {
-      setModalError('Valid ROI percentage is required');
+    if (isNaN(parsedRoi) || parsedRoi < 0 || parsedRoi > 100) {
+      setModalError('Valid ROI percentage (0 to 100) is required');
       return;
     }
     if (isNaN(parsedPeriod) || parsedPeriod < 1) {
@@ -96,34 +154,36 @@ function PlanList() {
       return;
     }
 
+    // Verify all referral levels are filled correctly
+    const parsedLevels = [];
+    for (let i = 0; i < levels.length; i++) {
+      const currentVal = parseFloat(levels[i]);
+      if (isNaN(currentVal) || currentVal < 0 || currentVal > 100) {
+        setModalError(`Referral commission percentage for Level ${i + 1} must be a number between 0 and 100`);
+        return;
+      }
+      parsedLevels.push(currentVal);
+    }
+
     setModalLoading(true);
-    const token = Cookies.get('token');
 
     try {
-      const response = await fetch('http://localhost:5000/api/plans', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          planName: planName.trim(),
-          roi: parsedRoi,
-          period: parsedPeriod,
-          minInvestAmount: parsedMinInvest,
-          levelBonus: levels,
-          status: status
-        })
+      const { data } = await api.post('/plans', {
+        planName: planName.trim(),
+        roi: parsedRoi,
+        period: parsedPeriod,
+        minInvestAmount: parsedMinInvest,
+        levelBonus: parsedLevels,
+        status: status
       });
 
-      const data = await response.json();
       if (data.status === 'success') {
         // Reset state and close modal
         setPlanName('');
         setRoi('');
         setPeriod('');
         setMinInvest('');
-        setLevels([10]);
+        setLevels(['']);
         setStatus('Active');
         setIsModalOpen(false);
         toast.success('New plan successfully created!');
@@ -133,7 +193,8 @@ function PlanList() {
       }
     } catch (err) {
       console.error(err);
-      setModalError('Network error, please try again');
+      const message = err.response?.data?.message || 'Network error, please try again';
+      setModalError(message);
     } finally {
       setModalLoading(false);
     }
@@ -141,16 +202,8 @@ function PlanList() {
 
   // Click Handler for Delete Button (runs after custom modal confirmation)
   const handleDeletePlan = async (planId) => {
-    const token = Cookies.get('token');
-    
     try {
-      const response = await fetch(`http://localhost:5000/api/plans/${planId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      const data = await response.json();
+      const { data } = await api.delete(`/plans/${planId}`);
       if (data.status === 'success') {
         toast.success(data.message || 'Plan deleted successfully!');
         fetchPlans(); // Reload list
@@ -159,7 +212,8 @@ function PlanList() {
       }
     } catch (err) {
       console.error(err);
-      toast.error('Connection failed. Make sure the server is online.');
+      const message = err.response?.data?.message || 'Connection failed. Make sure the server is online.';
+      toast.error(message);
     }
   };
 
@@ -324,12 +378,13 @@ function PlanList() {
                   <label className="text-xs font-bold text-slate-700 block">Daily ROI % <span className="text-red-500">*</span></label>
                   <input
                     type="number"
-                    step="0.01"
+                    step="0.001"
                     required
                     disabled={modalLoading}
                     value={roi}
-                    onChange={(e) => setRoi(e.target.value)}
-                    placeholder="e.g. 1.5"
+                    onChange={handleRoiChange}
+                    onKeyDown={handleDecimalKeyDown}
+                    placeholder="e.g. 1.500"
                     className="w-full px-3 py-1.5 bg-white border border-slate-400 rounded-[4px] text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-slate-50"
                   />
                 </div>
@@ -341,7 +396,8 @@ function PlanList() {
                     required
                     disabled={modalLoading}
                     value={period}
-                    onChange={(e) => setPeriod(e.target.value)}
+                    onChange={handlePeriodChange}
+                    onKeyDown={handleIntegerKeyDown}
                     placeholder="e.g. 30"
                     className="w-full px-3 py-1.5 bg-white border border-slate-400 rounded-[4px] text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-slate-50"
                   />
@@ -351,10 +407,12 @@ function PlanList() {
                   <label className="text-xs font-bold text-slate-700 block">Min. Invest (₹) <span className="text-red-500">*</span></label>
                   <input
                     type="number"
+                    step="0.001"
                     required
                     disabled={modalLoading}
                     value={minInvest}
-                    onChange={(e) => setMinInvest(e.target.value)}
+                    onChange={handleMinInvestChange}
+                    onKeyDown={handleDecimalKeyDown}
                     placeholder="e.g. 500"
                     className="w-full px-3 py-1.5 bg-white border border-slate-400 rounded-[4px] text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-slate-50"
                   />
@@ -381,11 +439,12 @@ function PlanList() {
                       <span className="text-xs text-slate-700 font-bold w-16">Lvl {idx + 1}:</span>
                       <input
                         type="number"
-                        step="0.1"
+                        step="0.001"
                         required
                         disabled={modalLoading}
                         value={val}
                         onChange={(e) => handleLevelChange(idx, e.target.value)}
+                        onKeyDown={handleDecimalKeyDown}
                         placeholder="Commission %"
                         className="flex-1 px-3 py-1.5 bg-white border border-slate-400 rounded-[4px] text-xs text-slate-900 font-semibold focus:outline-none focus:border-blue-600 focus:ring-1 focus:ring-blue-600 disabled:bg-slate-50"
                       />
@@ -435,8 +494,8 @@ function PlanList() {
             </div>
             
             <div className="space-y-2">
-              <h3 className="text-sm font-extrabold text-slate-900">Are you sure?</h3>
-              <p className="text-xs text-slate-600 font-semibold leading-relaxed">
+              <h3 className="text-sm font-extrabold text-slate-950">Are you sure?</h3>
+              <p className="text-xs text-slate-650 font-semibold leading-relaxed">
                 Do you really want to delete or toggle the status of this plan? This action cannot be undone if deleted.
               </p>
             </div>

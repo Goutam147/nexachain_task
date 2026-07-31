@@ -1,11 +1,15 @@
+import { useState } from 'react';
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FaChartLine, FaSignOutAlt } from 'react-icons/fa';
+import { FaChartLine, FaSignOutAlt, FaCoins, FaUsers, FaChevronDown, FaHistory, FaSitemap } from 'react-icons/fa';
 import Button from '../ui/Button';
 
 function UserLayout() {
   const { user, loading, logout } = useAuth();
   const location = useLocation();
+  const [referralOpen, setReferralOpen] = useState(
+    location.pathname.startsWith('/referrals')
+  );
 
   if (loading) {
     return (
@@ -22,6 +26,8 @@ function UserLayout() {
   if (user.role === 'admin') {
     return <Navigate to="/admin/dashboard" replace />;
   }
+
+  const isReferralActive = location.pathname.startsWith('/referrals');
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 flex flex-col font-sans">
@@ -67,6 +73,58 @@ function UserLayout() {
             >
               <FaChartLine /> Main Dashboard
             </Link>
+            
+            <Link 
+              to="/investments"
+              className={`flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-[4px] transition-colors ${
+                location.pathname === '/investments' 
+                  ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' 
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <FaCoins /> Investment
+            </Link>
+
+            {/* Referral Dropdown */}
+            <div>
+              <button
+                onClick={() => setReferralOpen(!referralOpen)}
+                className={`w-full flex items-center justify-between px-4 py-2.5 text-xs font-bold rounded-[4px] transition-colors cursor-pointer ${
+                  isReferralActive
+                    ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span className="flex items-center gap-3">
+                  <FaUsers /> Referral
+                </span>
+                <FaChevronDown className={`text-[8px] transition-transform duration-200 ${referralOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Submenu */}
+              <div className={`overflow-hidden transition-all duration-200 ${referralOpen ? 'max-h-40 mt-1' : 'max-h-0'}`}>
+                <Link
+                  to="/referrals/history"
+                  className={`flex items-center gap-3 pl-11 pr-4 py-2 text-xs font-bold rounded-[4px] transition-colors ${
+                    location.pathname === '/referrals/history'
+                      ? 'text-blue-700 bg-blue-50/60'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                  }`}
+                >
+                  <FaHistory className="text-[10px]" /> History
+                </Link>
+                <Link
+                  to="/referrals/tree"
+                  className={`flex items-center gap-3 pl-11 pr-4 py-2 text-xs font-bold rounded-[4px] transition-colors ${
+                    location.pathname === '/referrals/tree'
+                      ? 'text-blue-700 bg-blue-50/60'
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-700'
+                  }`}
+                >
+                  <FaSitemap className="text-[10px]" /> Referral Tree
+                </Link>
+              </div>
+            </div>
           </nav>
         </aside>
 
