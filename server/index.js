@@ -30,7 +30,7 @@ app.use(limiter);
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    message: 'NexaChain AI Backend Server API is running'
+    message: 'NC Investment Backend Server API is running'
   });
 });
 

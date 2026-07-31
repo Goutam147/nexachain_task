@@ -28,3 +28,7 @@ yarn-error.log*
 *.njsproj
 *.sln
 *.sw?
+
+# Task files
+*.pdf
+nc_logo.png
