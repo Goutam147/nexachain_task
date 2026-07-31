@@ -1,0 +1,23 @@
+# Dependency directories
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Frontend source and build artifacts (not needed for backend container)
+client/
+
+# Local env files and secrets
+.env
+.env*
+server/.env
+
+# Git files
+.git
+.gitignore
+
+# Documentation and assessments
+*.pdf
+nc_logo.png
+README.md
+deployment_guide.md
+cloudbuild.yaml
