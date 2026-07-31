@@ -13,9 +13,9 @@ const investmentSchema = new mongoose.Schema({
     min: [0.01, 'Investment must be greater than 0']
   },
   planDetails: {
-    type: String,
-    required: [true, 'Plan details are required'],
-    trim: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Plan',
+    required: [true, 'Plan details reference is required']
   },
   startDate: {
     type: Date,

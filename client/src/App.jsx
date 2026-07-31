@@ -8,6 +8,7 @@ import Register from './components/pages/Register';
 import UserDashboard from './components/pages/UserDashboard';
 import AdminDashboard from './components/pages/AdminDashboard';
 import UserList from './components/pages/UserList';
+import PlanList from './components/pages/PlanList';
 
 function HomeRedirect() {
   const { user, loading } = useAuth();
@@ -65,6 +66,10 @@ const router = createBrowserRouter([
       {
         path: 'users',
         element: <UserList />
+      },
+      {
+        path: 'plans',
+        element: <PlanList />
       }
     ]
   },
@@ -75,10 +80,25 @@ const router = createBrowserRouter([
   }
 ]);
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
+      <ToastContainer 
+        position="top-right" 
+        autoClose={3000} 
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
     </AuthProvider>
   );
 }

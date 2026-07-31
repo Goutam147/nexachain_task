@@ -1,23 +1,12 @@
 const authService = require('../services/authService');
-const { registerSchema, loginSchema } = require('../utils/validators');
 
 // @desc    Register new user
 // @route   POST /api/auth/register
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    // 1. Zod payload validation
-    const parsed = registerSchema.safeParse(req.body);
-    if (!parsed.success) {
-      const errors = parsed.error.issues.map(issue => ({
-        field: issue.path.join('.'),
-        message: issue.message
-      }));
-      return res.status(400).json({ status: 'fail', errors });
-    }
-
-    // 2. Delegate to Service Layer
-    const result = await authService.registerUser(parsed.data);
+    // Body is already validated and formatted by validationMiddleware
+    const result = await authService.registerUser(req.body);
     res.status(201).json({
       status: 'success',
       token: result.token,
@@ -33,18 +22,8 @@ const registerUser = async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
-    // 1. Zod payload validation
-    const parsed = loginSchema.safeParse(req.body);
-    if (!parsed.success) {
-      const errors = parsed.error.issues.map(issue => ({
-        field: issue.path.join('.'),
-        message: issue.message
-      }));
-      return res.status(400).json({ status: 'fail', errors });
-    }
-
-    // 2. Delegate to Service Layer
-    const result = await authService.loginUser(parsed.data);
+    // Body is already validated and formatted by validationMiddleware
+    const result = await authService.loginUser(req.body);
     res.json({
       status: 'success',
       token: result.token,

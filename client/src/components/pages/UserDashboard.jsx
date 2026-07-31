@@ -24,7 +24,7 @@ function UserDashboard() {
 
   // Mock list of referrals
   const [referrals] = useState([
-    { name: 'Bob Smith', email: 'bob@example.com', investment: 'Rs. 500.00', level: 1 }
+    { name: 'Bob Smith', email: 'bob@example.com', investment: '₹500.00', level: 1 }
   ]);
 
   return (
@@ -49,7 +49,7 @@ function UserDashboard() {
               <FaCoins />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">Rs. {totalInvestments.toFixed(2)}</div>
+          <div className="text-xl font-bold text-slate-800">₹{totalInvestments.toFixed(2)}</div>
           <div className="text-[10px] text-blue-600 mt-1 font-semibold">1 Active Contract</div>
         </div>
 
@@ -61,7 +61,7 @@ function UserDashboard() {
               <FaWallet />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">Rs. {walletBalance.toFixed(2)}</div>
+          <div className="text-xl font-bold text-slate-800">₹{walletBalance.toFixed(2)}</div>
           <div className="text-[10px] text-emerald-600 mt-1 font-semibold">Available for withdrawal</div>
         </div>
 
@@ -73,7 +73,7 @@ function UserDashboard() {
               <FaChartLine />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">Rs. {roiEarned.toFixed(2)}</div>
+          <div className="text-xl font-bold text-slate-800">₹{roiEarned.toFixed(2)}</div>
           <div className="text-[10px] text-slate-400 mt-1">1.00% daily payout</div>
         </div>
 
@@ -85,7 +85,7 @@ function UserDashboard() {
               <FaUsers />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">Rs. {levelIncome.toFixed(2)}</div>
+          <div className="text-xl font-bold text-slate-800">₹{levelIncome.toFixed(2)}</div>
           <div className="text-[10px] text-slate-400 mt-1">Active referrals network</div>
         </div>
       </div>
@@ -113,7 +113,7 @@ function UserDashboard() {
                   <tr key={tx.id} className="hover:bg-slate-50 transition-colors">
                     <td className="py-3 px-3 font-mono text-slate-500">TX-00{tx.id}</td>
                     <td className="py-3 px-3 font-semibold text-slate-700">{tx.type}</td>
-                    <td className="py-3 px-3 font-bold text-blue-600">+Rs. {tx.amount.toFixed(2)}</td>
+                    <td className="py-3 px-3 font-bold text-blue-600">+₹{tx.amount.toFixed(2)}</td>
                     <td className="py-3 px-3 text-slate-500">{tx.date}</td>
                     <td className="py-3 px-3">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] text-[10px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100">

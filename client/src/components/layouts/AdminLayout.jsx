@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { FaChartLine, FaUsers, FaSignOutAlt } from 'react-icons/fa';
+import { FaChartLine, FaUsers, FaCoins, FaSignOutAlt } from 'react-icons/fa';
 import Button from '../ui/Button';
 
 function AdminLayout() {
@@ -79,11 +79,22 @@ function AdminLayout() {
             >
               <FaUsers /> User Directory
             </Link>
+
+            <Link 
+              to="/admin/plans"
+              className={`flex items-center gap-3 px-4 py-2.5 text-xs font-bold rounded-[4px] transition-colors ${
+                location.pathname === '/admin/plans' 
+                  ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' 
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <FaCoins /> Investment Plans
+            </Link>
           </nav>
         </aside>
 
         {/* Dashboard Area */}
-        <main className="flex-1 p-6 md:p-8 bg-slate-50">
+        <main className="flex-1 p-2 sm:p-3 bg-slate-50">
           <Outlet />
         </main>
       </div>

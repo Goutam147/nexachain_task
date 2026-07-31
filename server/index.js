@@ -37,6 +37,9 @@ app.get('/', (req, res) => {
 // Auth Routes
 app.use('/api/auth', require('./routes/authRoutes'));
 
+// Plan Routes
+app.use('/api/plans', require('./routes/planRoutes'));
+
 // Boot Server after DB connection
 connectDB().then(() => {
   // Seed default admin user

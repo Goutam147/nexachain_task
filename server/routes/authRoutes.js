@@ -7,10 +7,12 @@ const {
   getAllUsers 
 } = require('../controllers/authController');
 const { protect, authorize } = require('../middleware/authMiddleware');
+const validate = require('../middleware/validationMiddleware');
+const { registerSchema, loginSchema } = require('../validators/authValidator');
 
 // Public routes
-router.post('/register', registerUser);
-router.post('/login', loginUser);
+router.post('/register', validate(registerSchema), registerUser);
+router.post('/login', validate(loginSchema), loginUser);
 
 // Private routes
 router.get('/me', protect, getMe);

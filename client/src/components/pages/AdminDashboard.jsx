@@ -36,7 +36,7 @@ function AdminDashboard() {
               <FaWallet />
             </div>
           </div>
-          <div className="text-xl font-bold text-slate-800">Rs. 1,45,000.00</div>
+          <div className="text-xl font-bold text-slate-800">₹1,45,000.00</div>
           <div className="text-[10px] text-emerald-600 mt-1 font-semibold">Platform deposits</div>
         </div>
 

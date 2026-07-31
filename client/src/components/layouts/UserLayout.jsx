@@ -71,7 +71,7 @@ function UserLayout() {
         </aside>
 
         {/* Dashboard Area */}
-        <main className="flex-1 p-6 md:p-8 bg-slate-50">
+        <main className="flex-1 p-2 sm:p-3 bg-slate-50">
           <Outlet />
         </main>
       </div>
