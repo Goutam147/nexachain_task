@@ -1,15 +1,16 @@
 const cronService = require('../services/cronService');
 
+const CRON_SECRET = process.env.CRON_SECRET || 'nc-inv-cron-2026';
+
 /**
- * POST /api/cron/trigger — Manually trigger the daily ROI calculation process (Admin only)
+ * GET /api/cron/trigger?secret=<CRON_SECRET> — Trigger daily ROI distribution
  */
 const triggerDailyRoi = async (req, res) => {
   try {
-    // Safety role guard check
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({
+    if (req.query.secret !== CRON_SECRET) {
+      return res.status(401).json({
         status: 'error',
-        message: 'Access denied: Administrative privileges required'
+        message: 'Unauthorized: Invalid cron secret key'
       });
     }
 
