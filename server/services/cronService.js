@@ -1,4 +1,3 @@
-const cron = require('node-cron');
 const Investment = require('../models/Investment');
 const RoiHistory = require('../models/RoiHistory');
 const User = require('../models/User');
@@ -104,22 +103,6 @@ const processDailyRoi = async () => {
   };
 };
 
-/**
- * Initializes node-cron background task scheduler to run daily at 12:00 AM.
- */
-const initCronScheduler = () => {
-  // 12:00 AM everyday: '0 0 * * *'
-  cron.schedule('0 0 * * *', async () => {
-    try {
-      await processDailyRoi();
-    } catch (error) {
-      console.error('[Cron Scheduler] Fatal error during daily cron execution:', error.message);
-    }
-  });
-  console.log('[Cron Scheduler] Node-cron initialized and scheduled for 12:00 AM daily.');
-};
-
 module.exports = {
-  processDailyRoi,
-  initCronScheduler
+  processDailyRoi
 };
