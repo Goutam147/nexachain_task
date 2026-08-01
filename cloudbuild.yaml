@@ -30,6 +30,8 @@ steps:
       - '--platform'
       - 'managed'
       - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'MONGODB_URI=mongodb+srv://janagoutam147_db_user:RqIbFSHG3aeNQO1v@cluster0.a7ejmcm.mongodb.net/nc_investment?appName=Cluster0,TZ=Asia/Kolkata'
       # Note: Database connection string and secrets will be configured in Cloud Run environment variables.
 
 images:
