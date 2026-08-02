@@ -1,6 +1,6 @@
 # NC Investment System
 
-A modern, secure, and professional MERN Stack investment and multi-level referral platform. This application features automated daily ROI distributions, a 3-level hierarchical referral structure with level commissions, interactive client dashboards, and cloud deployment with CI/CD.
+A modern, secure, and professional MERN Stack investment and multi-level referral platform. This application features automated daily ROI distributions, a dynamic multi-level referral structure with level commissions, interactive client dashboards, and cloud deployment with CI/CD.
 
 ---
 
@@ -16,7 +16,7 @@ A modern, secure, and professional MERN Stack investment and multi-level referra
 
 *   **Frontend:** React (Vite), TailwindCSS, React Router DOM, Axios, Cookies, React Icons.
 *   **Backend:** Node.js, Express.js, Mongoose/MongoDB, JSONWebToken (JWT), BcryptJS, Zod (Validations).
-*   **Deployment & CI/CD:** Google Cloud Run, Google Cloud Build, Google Artifact Registry, Firebase Hosting, Hostinger.
+*   **Deployment & CI/CD:** Google Cloud Run (backend with Cloud Build + Artifact Registry), Hostinger shared hosting (frontend) & Hostinger cron job scheduler (automated triggers).
 
 ---
 
@@ -51,66 +51,23 @@ nc-investment/
 
 ---
 
-## 📊 Data Flow Diagram (DFD)
+## Data Flow Diagram (DFD)
 
-The following diagram illustrates the complete system architecture, data stores, external entities, and operational processes:
+The following diagram illustrates the simple top-down operational flow:
 
 ```mermaid
 graph TD
-    %% Entities
-    U[User Client]
-    A[Admin Client]
-    C[Hostinger Cron Job]
-
-    %% Processes
-    P1["1.0 Auth Services"]
-    P2["2.0 Plan Manager"]
-    P3["3.0 Investment Engine"]
-    P4["4.0 Dashboard Aggregator"]
-    P5["5.0 Automated Cron Processor"]
-
-    %% Data Stores
-    D1[("Users Collection")]
-    D2[("Plans Collection")]
-    D3[("Investments Collection")]
-    D4[("RoiHistory Collection")]
-    D5[("ReferralIncome Collection")]
-
-    %% Authentication flows
-    U -->|Credentials| P1
-    P1 -->|Query/Create User| D1
-    P1 -->|JWT Session Token| U
-
-    %% Plan Management flows
-    A -->|CRUD Plans| P2
-    P2 -->|Save/Update Plan| D2
-
-    %% Investment purchasing flows
-    U -->|Buy Plan request| P3
-    P3 -->|Validate ranges & limits| D2
-    P3 -->|Write active contract| D3
-    P3 -->|Deduct Capital & Pay One-Time Referral Bonus| D1
-    P3 -->|Write bonus log| D5
-
-    %% Dashboard stats aggregation
-    U -->|Request statistics| P4
-    A -->|Request admin metrics| P4
-    P4 -->|Read User balances| D1
-    P4 -->|Read Active contracts| D3
-    P4 -->|Read ROI logs| D4
-    P4 -->|Read Referral logs| D5
-
-    %% Daily Cron execution
-    C -->|GET /trigger?secret=key| P5
-    P5 -->|Read active contracts| D3
-    P5 -->|Check daily idempotency| D4
-    P5 -->|Credit daily ROI & Save log| D1
-    P5 -->|Write ROI payout log| D4
+    CronJob[Hostinger Cron Job Trigger] -->|HTTP GET Request /api/cron/trigger| Backend[Cloud Run Backend Server]
+    Backend -->|Read Active Investments| DB[(MongoDB Atlas Database)]
+    Backend -->|Process Daily ROI & Level Income| DB
+    Backend -->|Check Idempotency & Prevent Duplicate Runs| DB
+    Backend -->|Credit Wallet Balance & Write History Log| DB
+    Client[React Client Frontend] -->|API Requests| Backend
 ```
 
 ---
 
-## 🔑 Environment Variables Configuration
+## Environment Variables Configuration
 
 ### Backend (`server/.env`)
 Create a `.env` file inside the `server/` directory:
@@ -130,7 +87,7 @@ VITE_API_URL=https://nc-investment-backend-913979470026.asia-south1.run.app/api
 
 ---
 
-## 💻 Local Installation & Setup
+## Local Installation & Setup
 
 ### Prerequisite
 Ensure you have **Node.js (v18+)** and **MongoDB** installed and running locally.
@@ -148,10 +105,10 @@ Ensure you have **Node.js (v18+)** and **MongoDB** installed and running locally
    ```bash
    npm run dev
    ```
-   *Note: Default seeded test accounts available for evaluation:*
+   *Note: Live test accounts available for evaluation (seeded locally & live on production):*
    *   **Admin Account:**
        *   **Email:** `admin@admin.com`
-       *   **Password:** `admin123`
+       *   **Password:** `123456`
    *   **User Account:**
        *   **Email:** `user@gmail.com`
        *   **Password:** `123456`
@@ -172,7 +129,7 @@ Ensure you have **Node.js (v18+)** and **MongoDB** installed and running locally
 
 ---
 
-## 📋 API Documentation & Endpoints
+## API Documentation & Endpoints
 
 All requests should be sent with `Content-Type: application/json`. Protected endpoints require a `Authorization: Bearer <token>` header.
 
@@ -192,7 +149,7 @@ All requests should be sent with `Content-Type: application/json`. Protected end
 *   `GET /api/investments` (Protected) - Lists active/completed investments for the user.
 
 ### 4. Referral & Level Income APIs
-*   `GET /api/referrals/tree` (Protected) - Fetches a nested structure of direct and indirect downlines (up to 3 levels).
+*   `GET /api/referrals/tree` (Protected) - Fetches a nested structure of direct and indirect downlines (based on plan configuration).
 *   `GET /api/referrals` (Protected) - Returns logs of level commission payouts received.
 
 ### 5. Dashboard APIs
@@ -200,11 +157,11 @@ All requests should be sent with `Content-Type: application/json`. Protected end
 *   `GET /api/dashboard/admin` (Admin Only) - Returns System stats (Total users, Total investments, total ROI paid out, SVG performance chart data).
 
 ### 6. Automated Cron Scheduler
-*   `GET /api/cron/trigger?secret=nc-inv-cron-2026` (Public via Secret Key) - Triggers midnight daily calculations. Wakes the serverless instance, runs ROI distributions, handles 3-level commissions, and writes immutable logs.
+*   `GET /api/cron/trigger?secret=nc-inv-cron-2026` (Public via Secret Key) - Triggers midnight daily calculations. Wakes the serverless instance, runs ROI distributions, handles multi-level commissions, and writes immutable logs.
 
 ---
 
-## 💡 Key Architectural Assumptions & Business Logic
+## Key Architectural Assumptions & Business Logic
 
 ### 1. Dynamic Plan Collection (Admin Managed)
 The platform features a fully dynamic investment engine managed by administrators via the `Plan` collection. Each plan defines:
@@ -223,8 +180,7 @@ The platform features a fully dynamic investment engine managed by administrator
 The platform operates strictly on **India Standard Time (Asia/Kolkata)**. All start and end boundaries for daily calculations are converted to IST bounds on the server to ensure that payouts and logs sync cleanly to local midnight (12:00 AM IST) regardless of where the cloud servers are physically located.
 
 ### 4. Decoupled Cron & Scalable Architecture
-*   **No Node-Cron:** We have completely removed the internal `node-cron` package and scheduler from our Express backend. In autoscaled, multi-instance serverless environments like Google Cloud Run, internal schedulers either fail to trigger (containers are put to sleep due to lack of requests) or trigger multiple times (running on every parallel instance).
-*   **External Scheduler:** A dedicated external cron scheduler (Hostinger Cron) invokes the public GET `/api/cron/trigger?secret=nc-inv-cron-2026` endpoint. The request wakes up the serverless backend, executes the payout logic exactly once, and lets the container spin down.
+A dedicated external cron scheduler (Hostinger Cron) invokes the public GET `/api/cron/trigger?secret=nc-inv-cron-2026` endpoint. The request wakes up the serverless backend, executes the payout logic exactly once, and lets the container spin down. This eliminates duplicate payouts caused by server scaling (multiple instances) or serverless freezing.
 
 ### 5. Idempotent Daily ROI Distribution & Duplicate Prevention
 To prevent double-crediting if the cron trigger is executed multiple times accidentally or called manually:
