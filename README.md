@@ -179,10 +179,20 @@ The platform features a fully dynamic investment engine managed by administrator
 ### 3. Timezone Alignment
 The platform operates strictly on **India Standard Time (Asia/Kolkata)**. All start and end boundaries for daily calculations are converted to IST bounds on the server to ensure that payouts and logs sync cleanly to local midnight (12:00 AM IST) regardless of where the cloud servers are physically located.
 
-### 4. Decoupled Cron & Scalable Architecture
+### 4. Daily ROI Cron Algorithm
+The daily distribution process follows a strict transaction sequence to calculate and credit daily ROI:
+*   **Step 1 (Fetch Active Contracts):** Query the `Investment` collection to retrieve all contracts where `status` is `'Active'`.
+*   **Step 2 (Set IST Time Boundaries):** Compute the start boundary (`00:00:00.000`) and end boundary (`23:59:59.999`) for the current calendar date in the Kolkata timezone (IST).
+*   **Step 3 (Verify Idempotency):** For each active contract, query the `RoiHistory` collection to check if an entry exists for that `investmentId` within the calculated IST start and end date boundaries. If a record is found, the system skips the contract to block duplicate processing.
+*   **Step 4 (Fetch Profile & Calculate ROI):** Retrieve the user profile linked to the contract. Calculate the payout amount: `investmentAmount * (dailyRoiPercentage / 100)`.
+*   **Step 5 (Log Transaction):** Create and save a new `RoiHistory` record with `status` set to `'Credited'` and `date` set to the current time in IST.
+*   **Step 6 (Credit Wallet Balance):** Increment the user's `walletBalance` and `totalRoiEarned` by the calculated ROI payout. Save the updated user document to the database.
+*   **Step 7 (Report Results):** Accumulate the execution logs to return a structured report showing total processed, successful, skipped, and failed payouts.
+
+### 5. Decoupled Cron & Scalable Architecture
 A dedicated external cron scheduler (Hostinger Cron) invokes the public GET `/api/cron/trigger?secret=nc-inv-cron-2026` endpoint. The request wakes up the serverless backend, executes the payout logic exactly once, and lets the container spin down. This eliminates duplicate payouts caused by server scaling (multiple instances) or serverless freezing.
 
-### 5. Idempotent Daily ROI Distribution & Duplicate Prevention
+### 6. Idempotent Daily ROI Distribution & Duplicate Prevention
 To prevent double-crediting if the cron trigger is executed multiple times accidentally or called manually:
 1.  **Date-Range Verification:** Upon execution, the server calculates the start and end timestamps of the current day in the Kolkata timezone.
 2.  **History Check:** For each active investment contract, the server queries the `RoiHistory` collection to check if a log already exists for that `investmentId` within the calculated daily bounds.
