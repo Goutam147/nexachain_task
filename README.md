@@ -4,7 +4,7 @@ A modern, secure, and professional MERN Stack investment and multi-level referra
 
 ---
 
-## 🚀 Live Production Links
+## Live Production Links
 
 *   **Frontend Dashboard:** [https://nci.goutam.fun](https://nci.goutam.fun)
 *   **Backend Server URL:** `https://nc-investment-backend-913979470026.asia-south1.run.app`
@@ -12,7 +12,7 @@ A modern, secure, and professional MERN Stack investment and multi-level referra
 
 ---
 
-## 🛠️ Technology Stack
+## Technology Stack
 
 *   **Frontend:** React (Vite), TailwindCSS, React Router DOM, Axios, Cookies, React Icons.
 *   **Backend:** Node.js, Express.js, Mongoose/MongoDB, JSONWebToken (JWT), BcryptJS, Zod (Validations).
@@ -20,7 +20,7 @@ A modern, secure, and professional MERN Stack investment and multi-level referra
 
 ---
 
-## 📦 Project Structure
+## Project Structure
 
 ```
 nc-investment/
