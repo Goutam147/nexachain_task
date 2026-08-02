@@ -21,3 +21,8 @@ nc_logo.png
 README.md
 deployment_guide.md
 cloudbuild.yaml
+
+# Postman collections
+*postman*
+*.postman_collection.json
+

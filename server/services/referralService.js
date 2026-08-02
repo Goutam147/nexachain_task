@@ -49,7 +49,17 @@ const buildReferralTree = async (userId) => {
   };
 };
 
+/**
+ * Retrieves direct referrals (Level 1 referred users) for a user.
+ */
+const getDirectReferrals = async (userId) => {
+  return await User.find({ referredBy: userId })
+    .select('fullName email referralCode walletBalance accountStatus createdAt')
+    .sort({ createdAt: -1 });
+};
+
 module.exports = {
   getReferralIncomeByUserId,
-  buildReferralTree
+  buildReferralTree,
+  getDirectReferrals
 };

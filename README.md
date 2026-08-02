@@ -73,10 +73,10 @@ graph TD
 Create a `.env` file inside the `server/` directory:
 ```env
 PORT=5000
-MONGODB_URI=mongodb+srv://janagoutam147_db_user:<password>@cluster0.a7ejmcm.mongodb.net/nc_investment
+MONGODB_URI=mongodb+srv://db_user:<password>@cluster0.a7ejmcm.mongodb.net/nc_investment
 TZ=Asia/Kolkata
 CRON_SECRET=nc-inv-cron-2026
-JWT_SECRET=your_jwt_super_secret_key_here
+JWT_SECRET=jwt_super_secret_key_here
 ```
 
 ### Frontend (`client/.env.production`)
@@ -149,6 +149,7 @@ All requests should be sent with `Content-Type: application/json`. Protected end
 *   `GET /api/investments` (Protected) - Lists active/completed investments for the user.
 
 ### 4. Referral & Level Income APIs
+*   `GET /api/referrals/direct` (Protected) - Fetches all direct referrals (Level 1 downline list) for the authenticated user.
 *   `GET /api/referrals/tree` (Protected) - Fetches a nested structure of direct and indirect downlines (based on plan configuration).
 *   `GET /api/referrals` (Protected) - Returns logs of level commission payouts received.
 

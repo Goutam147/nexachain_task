@@ -38,7 +38,27 @@ const getReferralTree = async (req, res) => {
   }
 };
 
+/**
+ * GET /api/referrals/direct — Get direct referrals (Level 1 referred users) for logged-in user
+ */
+const getDirectReferrals = async (req, res) => {
+  try {
+    const directReferrals = await referralService.getDirectReferrals(req.user._id);
+    res.json({
+      status: 'success',
+      directReferrals
+    });
+  } catch (error) {
+    console.error('Error fetching direct referrals:', error.message);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Failed to fetch direct referrals'
+    });
+  }
+};
+
 module.exports = {
   getReferralIncome,
-  getReferralTree
+  getReferralTree,
+  getDirectReferrals
 };

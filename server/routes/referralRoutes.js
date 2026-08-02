@@ -9,6 +9,9 @@ router.use(protect);
 // GET /api/referrals — Get referral income history (authenticated)
 router.get('/', referralController.getReferralIncome);
 
+// GET /api/referrals/direct — Get direct referrals (authenticated)
+router.get('/direct', referralController.getDirectReferrals);
+
 // GET /api/referrals/tree — Get referral tree structure (authenticated)
 router.get('/tree', referralController.getReferralTree);
 

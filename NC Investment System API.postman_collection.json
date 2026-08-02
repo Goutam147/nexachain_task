@@ -1,0 +1,555 @@
+{
+  "info": {
+    "_postman_id": "a203f2bf-cf2f-46ad-8b83-b797d6edc976",
+    "name": "NC Investment System API",
+    "description": "Postman collection for NC Investment MERN Stack Platform. Features authentication, plans management, investments, multi-level referral tracking, ROI logging, dashboard metrics, and secure automated cron jobs.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44744671",
+    "_collection_link": "https://go.postman.co/collection/44744671-a203f2bf-cf2f-46ad-8b83-b797d6edc976?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"abir\",\n  \"email\": \"abir@example.com\",\n  \"mobileNumber\": \"9876543211\",\n  \"password\": \"123456\",\n  \"referredBy\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "Registers a new user on the platform. Provide an optional `referredBy` referral code of a parent user to join the referral tree."
+          },
+          "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "if (response && response.token) {",
+                  "    pm.environment.set(\"token\", response.token);",
+                  "    pm.collectionVariables.set(\"token\", response.token);",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@gmail.com\",\n  \"password\": \"123456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Authenticates user credentials and returns a JWT token. Automatically saves the token to the collection variable `token` on success."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current Profile (Me)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "description": "Fetches the current authenticated user's profile information."
+          },
+          "response": []
+        },
+        {
+          "name": "List All Users (Admin Only)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "users"
+              ]
+            },
+            "description": "Fetches details of all users registered on the platform. Restricted to accounts with the 'admin' role."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Plans",
+      "item": [
+        {
+          "name": "Get Investment Plans",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plans"
+              ]
+            },
+            "description": "Returns a list of all active investment plans available for purchase."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Investment Plan (Admin Only)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Gold Plan\",\n  \"minAmount\": 1000,\n  \"maxAmount\": 5000,\n  \"dailyRoiPercentage\": 1.5,\n  \"validityDays\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/plans",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plans"
+              ]
+            },
+            "description": "Creates a new investment plan. Restricted to administrator accounts."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Investment Plan (Admin Only)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/plans/:id",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "plans",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "PLAN_ID_HERE",
+                  "description": "ID of the plan to delete"
+                }
+              ]
+            },
+            "description": "Removes or deactivates an existing investment plan. Restricted to administrator accounts."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Investments",
+      "item": [
+        {
+          "name": "Get User Investments",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/investments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "investments"
+              ]
+            },
+            "description": "Fetches a list of all active, completed, or cancelled investments purchased by the current authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Investment Contract",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"planId\": \"PLAN_ID_HERE\",\n  \"amount\": 1500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/investments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "investments"
+              ]
+            },
+            "description": "Initiates a new active investment contract using a valid Plan ID and amount within the plan limits."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Referrals",
+      "item": [
+        {
+          "name": "Get Referral Tree",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/tree",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "tree"
+              ]
+            },
+            "description": "Fetches a nested hierarchical representation of all downline users referred by the current user (up to 3 levels)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Direct Referrals",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals/direct",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals",
+                "direct"
+              ]
+            },
+            "description": "Fetches all user profiles directly referred by the current user (Level 1 downlines)."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Referral Income History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/referrals",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "referrals"
+              ]
+            },
+            "description": "Retrieves the transaction logs of level/referral income credited from downline users' daily ROI payouts."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get User Dashboard Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard"
+              ]
+            },
+            "description": "Fetches aggregated user summary metrics: total investment volume, total daily ROI earnings, total level income accumulated, and active wallet balance."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Admin Dashboard Stats",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard/admin",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "dashboard",
+                "admin"
+              ]
+            },
+            "description": "Fetches system-wide administrator metrics: total user registrations, total investment pool capital, cumulative distributed daily ROI, and data for the dashboard performance chart."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ROI History",
+      "item": [
+        {
+          "name": "Get Daily ROI Log History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/roi",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "roi"
+              ]
+            },
+            "description": "Retrieves transaction logs of daily ROI distributions credited to the user's active contracts."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Cron Job",
+      "item": [
+        {
+          "name": "Trigger Daily ROI Cron",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/cron/trigger?secret={{cronSecret}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "cron",
+                "trigger"
+              ],
+              "query": [
+                {
+                  "key": "secret",
+                  "value": "{{cronSecret}}",
+                  "description": "Secure API token to authorize the cron scheduler run"
+                }
+              ]
+            },
+            "description": "Wakes the server and manually triggers the automated scheduler calculations. Distributes daily ROI to active contracts and propagates level commission payouts down the referral trees."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://nc-investment-backend-913979470026.asia-south1.run.app/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "cronSecret",
+      "value": "nc-inv-cron-2026"
+    }
+  ]
+}
